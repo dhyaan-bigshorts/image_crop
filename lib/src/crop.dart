@@ -9,6 +9,8 @@ const _kCropHandleColor = Color.fromRGBO(0xd0, 0xd0, 0xd0, 1.0);
 const _kCropHandleSize = 10.0;
 const _kCropHandleHitSize = 48.0;
 const _kCropMinFraction = 0.1;
+const _kCropBackgroundColor =
+    Color.fromRGBO(0x0, 0x0, 0x0, _kCropOverlayInactiveOpacity);
 
 enum _CropAction { none, moving, cropping, scaling }
 
@@ -26,6 +28,11 @@ class Crop extends StatefulWidget {
   final bool disableResize;
   final ImageErrorListener? onImageError;
 
+  /// Specifies [backgroundColor] to set the color of the mask that hide the cropped areas
+  ///
+  /// Defaults to [_kCropBackgroundColor]
+  final Color backgroundColor;
+
   const Crop({
     Key? key,
     required this.image,
@@ -34,6 +41,7 @@ class Crop extends StatefulWidget {
     this.alwaysShowGrid = false,
     this.disableResize = false,
     this.onImageError,
+    this.backgroundColor = _kCropBackgroundColor,
   }) : super(key: key);
 
   Crop.file(
@@ -45,6 +53,7 @@ class Crop extends StatefulWidget {
     this.alwaysShowGrid = false,
     this.disableResize = false,
     this.onImageError,
+    this.backgroundColor = _kCropBackgroundColor,
   })  : image = FileImage(file, scale: scale),
         super(key: key);
 
@@ -58,6 +67,7 @@ class Crop extends StatefulWidget {
     this.alwaysShowGrid = false,
     this.disableResize = false,
     this.onImageError,
+    this.backgroundColor = _kCropBackgroundColor,
   })  : image = AssetImage(assetName, bundle: bundle, package: package),
         super(key: key);
 
@@ -202,6 +212,7 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
                 scale: _scale,
                 active: _activeController.value,
                 disableResize: widget.disableResize,
+                backgroundColor: widget.backgroundColor,
               ),
             ),
           ),
@@ -639,6 +650,7 @@ class _CropPainter extends CustomPainter {
   final double scale;
   final double active;
   final bool disableResize;
+  final Color backgroundColor;
 
   _CropPainter({
     required this.image,
@@ -648,6 +660,7 @@ class _CropPainter extends CustomPainter {
     required this.scale,
     required this.active,
     required this.disableResize,
+    required this.backgroundColor,
   });
 
   @override
@@ -695,12 +708,9 @@ class _CropPainter extends CustomPainter {
       canvas.restore();
     }
 
-    paint.color = Color.fromRGBO(
-        0x0,
-        0x0,
-        0x0,
+    paint.color = backgroundColor.withOpacity(
         _kCropOverlayActiveOpacity * active +
-            _kCropOverlayInactiveOpacity * (1.0 - active));
+            backgroundColor.opacity * (1.0 - active));
     final boundaries = Rect.fromLTWH(
       rect.width * area.left,
       rect.height * area.top,
