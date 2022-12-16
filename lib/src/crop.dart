@@ -104,8 +104,10 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
   late Tween<double> _scaleTween;
 
   ImageStream? _imageStream;
-  ui.Image? _image;
+  ImageInfo? _imageInfo;
   ImageStreamListener? _imageListener;
+
+  ui.Image? get _image => _imageInfo?.image;
 
   double get scale => _area.shortestSide / _scale;
 
@@ -161,15 +163,11 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
     super.didUpdateWidget(oldWidget);
 
     if (widget.image != oldWidget.image) {
-      _image = null;
+      _imageInfo = null;
       _getImage();
     } else if (widget.aspectRatio != oldWidget.aspectRatio) {
-      _area = _calculateDefaultArea(
-        viewWidth: _view.width,
-        viewHeight: _view.height,
-        imageWidth: _image?.width,
-        imageHeight: _image?.height,
-      );
+      _scale = _imageInfo?.scale ?? 1.0;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _updateView());
     }
     if (widget.alwaysShowGrid != oldWidget.alwaysShowGrid) {
       if (widget.alwaysShowGrid) {
@@ -334,31 +332,45 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
       final image = imageInfo.image;
 
       setState(() {
-        _image = image;
+        _imageInfo = imageInfo;
         _scale = imageInfo.scale;
         _ratio = max(
           boundaries.width / image.width,
           boundaries.height / image.height,
         );
 
-        final viewWidth = boundaries.width / (image.width * _scale * _ratio);
-        final viewHeight = boundaries.height / (image.height * _scale * _ratio);
-        _area = _calculateDefaultArea(
-          viewWidth: viewWidth,
-          viewHeight: viewHeight,
-          imageWidth: image.width,
-          imageHeight: image.height,
-        );
-        _view = Rect.fromLTWH(
-          (viewWidth - 1.0) / 2,
-          (viewHeight - 1.0) / 2,
-          viewWidth,
-          viewHeight,
-        );
+        _updateView(boundaries);
       });
     });
 
     WidgetsBinding.instance.ensureVisualUpdate();
+  }
+
+  void _updateView([Size? b]) {
+    final boundaries = b ?? _boundaries;
+    if (boundaries == null) {
+      return;
+    }
+
+    final viewWidth =
+        boundaries.width / ((_image?.width ?? 0) * _scale * _ratio);
+    final viewHeight =
+        boundaries.height / ((_image?.height ?? 0) * _scale * _ratio);
+
+    setState(() {
+      _area = _calculateDefaultArea(
+        viewWidth: viewWidth,
+        viewHeight: viewHeight,
+        imageWidth: _image?.width,
+        imageHeight: _image?.height,
+      );
+      _view = Rect.fromLTWH(
+        (viewWidth - 1.0) / 2,
+        (viewHeight - 1.0) / 2,
+        viewWidth,
+        viewHeight,
+      );
+    });
   }
 
   _CropHandleSide _hitCropHandle(Offset? localPoint) {
