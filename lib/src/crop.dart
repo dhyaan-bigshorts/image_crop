@@ -133,6 +133,9 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
 
   ui.Image? get _image => _imageInfo?.image;
 
+  /// Set to `true` when [widget.image] data is changed
+  bool _didImageChanged = false;
+
   double get scale => _area.shortestSide / _scale;
 
   Rect? get area => _view.isEmpty
@@ -186,6 +189,8 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _didImageChanged = true;
+    _imageInfo = null;
     _getImage();
   }
 
@@ -194,6 +199,7 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
     super.didUpdateWidget(oldWidget);
 
     if (widget.image != oldWidget.image) {
+      _didImageChanged = true;
       _imageInfo = null;
       _getImage();
     } else if (widget.aspectRatio != oldWidget.aspectRatio) {
@@ -367,11 +373,17 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
       return;
     }
 
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      final image = imageInfo.image;
+    final image = imageInfo.image;
+    // since [_updateImage] can be called multiple times for the same image provider (i.e GIF)
+    // if the image is already loaded the crop params should not be updated
+    // only the new GIF frame should be changed
+    final isImageLoaded = !_didImageChanged;
+    _didImageChanged = false;
 
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       setState(() {
         _imageInfo = imageInfo;
+        if (isImageLoaded) return;
 
         // initialize internal parameters if exists
         if (widget.initialParam != null) {
