@@ -17,12 +17,11 @@ enum _CropHandleSide { none, topLeft, topRight, bottomLeft, bottomRight }
 /// Model containing all the internal parameters of the [Crop] widget
 class CropInternal {
   final Rect view, area;
-  final double ratio, scale;
+  final double scale;
 
   const CropInternal({
     required this.view,
     required this.area,
-    required this.ratio,
     required this.scale,
   });
 }
@@ -124,7 +123,7 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
   /// Returns the internal parameters of the state
   /// can be provided using [initialParam] to initialize the view to the same state
   CropInternal get internalParameters =>
-      CropInternal(view: _view, area: _area, scale: _scale, ratio: _ratio);
+      CropInternal(view: _view, area: _area, scale: _scale);
 
   @override
   void initState() {
@@ -331,20 +330,20 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
       setState(() {
         _image = image;
 
+        _ratio = max(
+          boundaries.width / image.width,
+          boundaries.height / image.height,
+        );
+
         // initialize internal parameters if exists
         if (widget.initialParam != null) {
           _view = widget.initialParam!.view;
           _area = widget.initialParam!.area;
           _scale = widget.initialParam!.scale;
-          _ratio = widget.initialParam!.ratio;
           return;
         }
 
         _scale = imageInfo.scale;
-        _ratio = max(
-          boundaries.width / image.width,
-          boundaries.height / image.height,
-        );
 
         final viewWidth = boundaries.width / (image.width * _scale * _ratio);
         final viewHeight = boundaries.height / (image.height * _scale * _ratio);
