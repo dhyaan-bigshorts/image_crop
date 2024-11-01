@@ -76,7 +76,7 @@ class CropState extends State<Crop> with TickerProviderStateMixin {
   late final AnimationController _settleController;
 
   double _scale = 1.0;
-  double _ratio = 1.0;
+  double _ratio = 4 / 3;
   Rect _view = Rect.zero;
   Rect _area = Rect.zero;
   Offset _lastFocalPoint = Offset.zero;
@@ -250,30 +250,34 @@ class CropState extends State<Crop> with TickerProviderStateMixin {
 
     double height;
     double width;
-    if ((widget.aspectRatio ?? 1.0) < 1) {
+    // Change 1.0 to 4/3 here
+    if ((widget.aspectRatio ?? 4 / 3) < 1) {
       height = 1.0;
       width =
-          ((widget.aspectRatio ?? 1.0) * imageHeight * viewHeight * height) /
+          ((widget.aspectRatio ?? 4 / 3) * imageHeight * viewHeight * height) /
               imageWidth /
               viewWidth;
       if (width > 1.0) {
         width = 1.0;
         height = (imageWidth * viewWidth * width) /
-            (imageHeight * viewHeight * (widget.aspectRatio ?? 1.0));
+            (imageHeight * viewHeight * (widget.aspectRatio ?? 4 / 3));
       }
     } else {
       width = 1.0;
       height = (imageWidth * viewWidth * width) /
-          (imageHeight * viewHeight * (widget.aspectRatio ?? 1.0));
+          (imageHeight * viewHeight * (widget.aspectRatio ?? 4 / 3));
       if (height > 1.0) {
         height = 1.0;
-        width =
-            ((widget.aspectRatio ?? 1.0) * imageHeight * viewHeight * height) /
-                imageWidth /
-                viewWidth;
+        width = ((widget.aspectRatio ?? 4 / 3) *
+                imageHeight *
+                viewHeight *
+                height) /
+            imageWidth /
+            viewWidth;
       }
     }
-    final aspectRatio = _maxAreaWidthMap[widget.aspectRatio];
+
+    final aspectRatio = _maxAreaWidthMap[widget.aspectRatio ?? 4 / 3];
     if (aspectRatio != null) {
       _maxAreaWidthMap[aspectRatio] = width;
     }
