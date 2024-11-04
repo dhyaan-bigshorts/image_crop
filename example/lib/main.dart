@@ -135,7 +135,7 @@ class _MyAppState extends State<MyApp> {
                       size: _pickedFile!.size!,
                       key: cropKey,
                       disableResize: true,
-                      aspectRatio: 1,
+                      aspectRatio: 3 / 4,
                     ),
                   if (isVideo && videoController != null)
                     AnimatedBuilder(
