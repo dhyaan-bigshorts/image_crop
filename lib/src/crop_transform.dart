@@ -45,7 +45,7 @@ class CropTransform extends StatelessWidget {
             scale: scale,
             alignment: Alignment.topLeft,
             child: FittedBox(
-              fit: BoxFit.cover,
+              fit: BoxFit.contain,
               alignment: Alignment.topLeft,
               child: SizedBox.fromSize(size: childSize, child: child),
             ),
